@@ -8,18 +8,18 @@ Based on the `.pgm` files, the `python` module `localdrag` ( [git](https://git.i
 
 ## How to Install
 
-The **Pseudo-3D-Stokes Module for Varying Apertures** is based on DuMu<sup>x</sup>. Therefore, DuMu<sup>x</sup> needs to be installed on a Linux system or within a Docker container. Instructions for installing DuMu<sup>x</sup> can be found [here](https://dumux.org/docs/doxygen/master/installation.html).
+The **Pseudo-3D-Stokes Module for Varying Apertures** is based on DuMu<sup>x</sup>. Therefore, DuMu<sup>x</sup> needs to be installed on a Linux system or within a Docker container. Instructions for installing DuMu<sup>x</sup> can be found [here](https://dumux.org/docs/doxygen/master/installation.html). Please clone the `master` branch.
 
 In addition to DuMu<sup>x</sup> and the Dune core modules, the Dune module `subgrid` needs to be installed using the `installexternal.py` script provided within the DuMu<sup>x</sup> installation.
 
 Next, clone the **Pseudo-3D-Stokes Module for Varying Apertures** into the DuMu<sup>x</sup> installation directory with the following command:
 ```bash
 # with https 
-git clone --recursive https://git.iws.uni-stuttgart.de/krachdd/pseudo3D_stokes.git
+git clone --recurse-submodules https://git.iws.uni-stuttgart.de/krachdd/pseudo3D_stokes.git
 # with ssh key
-git clone --recursive git@git.iws.uni-stuttgart.de:krachdd/pseudo3D_stokes.git
+git clone --recurse-submodules git@git.iws.uni-stuttgart.de:krachdd/pseudo3D_stokes.git
 ```
-`localdrag` is included via die `--recursive` flag as a submodule and cloned into the folder `preprocessing`. Please check for python requirements in `cat pseudo3D_stokes/preprocessing/localdrag/requirements.txt`. 
+`localdrag` is included via die `--recurse-submodules` flag as a submodule and cloned into the folder `preprocessing`. Please check for python requirements in `cat pseudo3D_stokes/preprocessing/localdrag/requirements.txt`. 
 Checkout main branch and add the `localdrag` module's directory to the path directory list using `PYTHONPATH`
 ```bash
 cd pseudo3D_stokes 
