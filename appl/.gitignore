@@ -1,0 +1,3 @@
+*.csv
+/test_singlePrecipitate_2d_total/*.input
+/test_singlePrecipitate_2d_total/*.txt

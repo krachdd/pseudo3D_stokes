@@ -1,0 +1,33 @@
+[Grid]
+UpperRight = <domainSizeX> <domainSizeY>
+Cells = <cellsX> <cellsY>
+
+GeometryFile = <geomFile>
+PreFactorDragFileX = <PreFactorDragFileX>
+PreFactorDragFileY = <PreFactorDragFileY>
+
+[Problem]
+Name = <name>
+DeltaP = <deltaP> # [Pa] Pressure difference between inlet and outlet  
+pRef = 0          # [Pa] Reference pressure at the outlet
+EnableGravity = false
+Height = <height> # [m]              # 
+PseudoWallFractionFactor = 12        # 8 for v_max, 12 for v_average
+
+[SpatialParams]
+PreExtrusionFactor = 1    # 0.666666667 for v_max, 1 for v_average
+
+[Component]
+LiquidDensity = 1e3
+LiquidKinematicViscosity = 1e-6
+
+[Newton]
+MaxSteps = 6
+MaxRelativeShift = 1e-8
+
+[Assembly]
+NumericDifference.BaseEpsilon = 1e-8
+
+[Vtk]
+WriteFaceData = false
+WriteVtuData = <WriteVtuData>

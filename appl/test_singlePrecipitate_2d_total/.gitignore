@@ -1,0 +1,13 @@
+*.pvd 
+*.vtu
+*.csv
+*.output
+!singlePrecipitate_no.input
+!singlePrecipitate_quarter.input
+!singlePrecipitate_half.input
+!singlePrecipitate_threeQuarter.input
+!singlePrecipitate_full.input
+!singlePrecipitate_fiveQuarter.input
+!singlePrecipitate_threeHalf.input
+pseudo3D_stokes
+

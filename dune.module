@@ -1,0 +1,12 @@
+################################
+# Dune module information file #
+################################
+
+# Name of the module
+Module: pseudo3D-stokes
+Version: 1
+Maintainer: felix.weinhardt@mib.uni-stuttgart.de, david.krach@mib.uni-stuttgart.de
+# Required build dependencies
+Depends: dumux
+# Optional build dependencies
+#Suggests:

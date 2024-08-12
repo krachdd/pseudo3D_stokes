@@ -1,93 +1,107 @@
-# Pseudo3D Stokes
+# A Pseudo-3D-Stokes Module for Varying Apertures
 
+**Pseudo-3D-Stokes Module for Varying Apertures** is a [DuMu<sup>x</sup>](https://dumux.org/) module developed at research institutions. [DuMu<sup>x</sup>](https://dumux.org/) is a simulation framework focusing on Finite Volume discretization methods, model coupling for multi-physics applications, and flow and transport applications in porous media.
 
+This module aims to assist researchers in planning, improving, or interpreting microfluidic experiments through numerical simulations based on the Stokes equations in an easy and intuitive way. It uses `.pgm` files as input to create numerical grids. These `.pgm` files should include 8 bit grayscale values referring to the relative height of a microfluidic cell, which can be created from microscopy images of a microfluidic experiment using suitable image processing procedures.
 
-## Getting started
+Based on the `.pgm` files, the `python` module `localdrag` ( [git](https://git.iws.uni-stuttgart.de/krachdd/localdrag), [DaRUS](https://doi.org/10.18419/darus-4313) ) should be used to create the suitable drag prefactor fields `lambda1` and `lambda2`. For further details, refer to our publication [**A Novel Geometry-Informed Drag Term Formulation for Depth-Averaged Stokes Simulations with Varying Apertures**](linkToDoinPaper).
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## How to Install
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+The **Pseudo-3D-Stokes Module for Varying Apertures** is based on DuMu<sup>x</sup>. Therefore, DuMu<sup>x</sup> needs to be installed on a Linux system or within a Docker container. Instructions for installing DuMu<sup>x</sup> can be found [here](https://dumux.org/docs/doxygen/master/installation.html).
 
-## Add your files
+In addition to DuMu<sup>x</sup> and the Dune core modules, the Dune module `subgrid` needs to be installed using the `installexternal.py` script provided within the DuMu<sup>x</sup> installation.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
+Next, clone the **Pseudo-3D-Stokes Module for Varying Apertures** into the DuMu<sup>x</sup> installation directory with the following command:
+```bash
+# with https 
+git clone --recursive https://git.iws.uni-stuttgart.de/krachdd/pseudo3D_stokes.git
+# with ssh key
+git clone --recursive git@git.iws.uni-stuttgart.de:krachdd/pseudo3D_stokes.git
 ```
-cd existing_repo
-git remote add origin https://git.iws.uni-stuttgart.de/krachdd/pseudo3D_stokes.git
-git branch -M main
-git push -uf origin main
+`localdrag` is included via die `--recursive` flag as a submodule and cloned into the folder `preprocessing`. Please check for python requirements in `cat pseudo3D_stokes/preprocessing/localdrag/requirements.txt`. 
+Checkout main branch and add the `localdrag` module's directory to the path directory list using `PYTHONPATH`
+```bash
+cd pseudo3D_stokes 
+# get the current main branch of the submodule
+git submodule foreach --recursive git checkout main
+# export the absolute path 
+export PYTHONPATH=$PYTHONPATH:$(pwd)/preprocessing/localdrag/
+# echo the path - should not be empty!
+echo $PYTHONPATH
+cd .. 
+```
+Subsequently the dunecontrol command needs to be executed:
+```bash
+# Reconfiguration and build of all modules
+./dune-common/bin/dunecontrol bexec rm -r CMakeFiles CMakeCache.txt
+./dune-common/bin/dunecontrol --opts=./dumux/cmake.opts all
+```
+The ctests can be executed to make sure everything has been installed properly:
+```bash
+# go to build directory
+cd pseudo3D_stokes/build-cmake/appl/
+# make executable
+make pseudo3D_stokes
+# run all 8 tests
+ctest all
+```
+## How to run simulations
+To start, it is recommended to run the prepared test case **test_singlePrecipitate_2d_total**. This folder contains `.pgm` files representing a domain with a semispherical precipitate at the center. The varying grayscale values in these files represent the apertures of the microfluidic cell (0: no aperture; 255: maximum aperture). Additionally, for each `.pgm` file, there are two `.txt` files with the prefixes `lambda1` and `lambda2`, which include the local drag terms for each grid point. These drag terms are calculated using the preprocessing `python` module [`localdrag`](https://git.iws.uni-stuttgart.de/krachdd/localdrag), based on the `.pgm` files. Further details about the preprocessing step can be found in the [[`localdrag`] module documentation](https://git.iws.uni-stuttgart.de/krachdd/localdrag/-/blob/faa44b05c1296d94a6f2fedc9752105ab20ef511/README.md).
+In order to run the test case, you need to first change to the correct directory, and build the executable - analogously to the last step in the *How to install*: 
+```bash
+cd pseudo3D_stokes/build-cmake/appl/
+make pseudo3D_stokes
+```
+In this folder, the `python` script **_runStokesGeneric.py_** is located. This script executes multiple simulations based on a defined _directory_, _height of the microfluidic channel_, and _voxel size_. You need to provide these input parameters when running the script. To learn more about the possible input parameters and how to use them, run the following command:
+
+```bash
+python3 runStokesGeneric.py --help
+```
+This command will display a help message with detailed information on the available options and usage instructions.
+
+We recommend using the shell script [run_simulations.sh](appl/run_simulations.sh) contains a command line that executes the `python` script [runStokesGeneric.py](appl/runStokesGeneric.py) with predefined input parameters. To run the simulations for the test case with these predefined parameters, use the following command:
+```bash
+sh run_simulations.sh
+```
+To view the simulation results in ParaView, use:
+```bash
+paraview test_singlePrecipitate_2d_total/*.pvd&
 ```
 
-## Integrate with your tools
+If you want to run simulations with your own geometries, follow these steps:
 
-- [ ] [Set up project integrations](https://git.iws.uni-stuttgart.de/krachdd/pseudo3D_stokes/-/settings/integrations)
+1.  **Create a new directory** containing your `.pgm` files along with the corresponding lambda files. These lambda files can be generated using the preprocessing `python` module [`localdrag`](https://git.iws.uni-stuttgart.de/krachdd/localdrag).
+    
+2.  **Run the simulations** by adjusting the input parameters in [runStokesGeneric.py](appl/runStokesGeneric.py) or better using [run_simulations.sh](appl/run_simulations.sh) after configuring it for your new setup.
 
-## Collaborate with your team
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+## How to cite
 
-## Test and Deploy
+If you are using the **Pseudo-3D-Stokes module for varying apertures** module in scientific publications and in
+the academic context, please cite our publication:
+**A novel geometry-informed drag term formulation for depth-averaged Stokes simulations with varying apertures.**
 
-Use the built-in continuous integration in GitLab.
+*Advances in Water Resources*, TODOVolume, TODOPages, (2024).
+TODO Link To Paper
+```bib
+@unpublished{Krach2024,
+    doi = {TODO},
+    year = {2024}, volume = {TODO}, pages = {TODO},
+    publisher = {Elsevier},
+    author = {David Krach and Felix Weinhardt and Mingfeng Wang and Martin Schneider and Holger Class and Holger Steeb},
+    title = {A novel geometry-informed drag term formulation for depth-averaged Stokes simulations with varying apertures},
+    journal = {Advances in Water Resources}}
+```
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+## Acknowledgements
+Funded by Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) under Germany's Excellence Strategy (Project number 390740016 - EXC 2075 and the Collaborative Research Center 1313 (project number 327154368 - SFB1313). We acknowledge the support by the Stuttgart Center for Simulation Science (SimTech).
 
-***
+## Developer
+- [Felix Weinhardt](https://www.mib.uni-stuttgart.de/de/institut/team/Weinhardt-00003/) E-mail: [felix.weinhardt@mib.uni-stuttgart.de](mailto:felix.weinhardt@mib.uni-stuttgart.de)
+- [David Krach](https://www.mib.uni-stuttgart.de/institute/team/Krach/) E-mail: [david.krach@mib.uni-stuttgart.de](mailto:david.krach@mib.uni-stuttgart.de)
 
-# Editing this README
+## Contact
+- [Software Support Institute of Applied Mechanics](mailto:software@mib.uni-stuttgart.de)
+- [Data Support Institute of Applied Mechanics](mailto:data@mib.uni-stuttgart.de)
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
