@@ -1,3 +1,3 @@
 [submodule "preprocessing/localdrag"]
 	path = preprocessing/localdrag
-	url = https://git.iws.uni-stuttgart.de/krachdd/localdrag.git
+	url = git@git.iws.uni-stuttgart.de:krachdd/localdrag.git
