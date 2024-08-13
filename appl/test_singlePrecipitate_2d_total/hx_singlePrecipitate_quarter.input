@@ -2,12 +2,12 @@
 UpperRight = 0.00014 0.0001
 Cells = 140 100
 
-GeometryFile = hx_singlePrecipitate_vs1e-06_full.pgm
-PreFactorDragFileX = lambda1_singlePrecipitate_vs1e-06_full.txt
-PreFactorDragFileY = lambda2_singlePrecipitate_vs1e-06_full.txt
+GeometryFile = hx_singlePrecipitate_quarter.pgm
+PreFactorDragFileX = lambda1_singlePrecipitate_quarter.txt
+PreFactorDragFileY = lambda2_singlePrecipitate_quarter.txt
 
 [Problem]
-Name = hx_singlePrecipitate_vs1e-06_full
+Name = hx_singlePrecipitate_quarter
 DeltaP = 0.0014 # [Pa] Pressure difference between inlet and outlet  
 pRef = 0          # [Pa] Reference pressure at the outlet
 EnableGravity = false
@@ -30,4 +30,4 @@ NumericDifference.BaseEpsilon = 1e-8
 
 [Vtk]
 WriteFaceData = false
-WriteVtuData = False
+WriteVtuData = True
