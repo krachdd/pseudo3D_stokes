@@ -1,0 +1,33 @@
+[Grid]
+UpperRight = 0.00014 0.0001
+Cells = 140 100
+
+GeometryFile = hx_singlePrecipitate_vs1e-06_fiveQuarter.pgm
+PreFactorDragFileX = lambda1_singlePrecipitate_vs1e-06_fiveQuarter.txt
+PreFactorDragFileY = lambda2_singlePrecipitate_vs1e-06_fiveQuarter.txt
+
+[Problem]
+Name = hx_singlePrecipitate_vs1e-06_fiveQuarter
+DeltaP = 0.0014 # [Pa] Pressure difference between inlet and outlet  
+pRef = 0          # [Pa] Reference pressure at the outlet
+EnableGravity = false
+Height = 3.6e-05 # [m]              # 
+PseudoWallFractionFactor = 12        # 8 for v_max, 12 for v_average
+
+[SpatialParams]
+PreExtrusionFactor = 1    # 0.666666667 for v_max, 1 for v_average
+
+[Component]
+LiquidDensity = 1e3
+LiquidKinematicViscosity = 1e-6
+
+[Newton]
+MaxSteps = 6
+MaxRelativeShift = 1e-8
+
+[Assembly]
+NumericDifference.BaseEpsilon = 1e-8
+
+[Vtk]
+WriteFaceData = false
+WriteVtuData = False
