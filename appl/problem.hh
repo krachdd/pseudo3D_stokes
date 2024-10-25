@@ -273,27 +273,18 @@ public:
 private:
     bool isInlet_(const GlobalPosition& globalPos) const
     {
-        if(verticalFlow_)
-        {
-            return globalPos[1] < eps_;
-        }
-        else
-        {
-            return globalPos[0] < eps_;
-        }
+        const auto flowDir = flowDirection_();
+        return globalPos[flowDir] < eps_;
     }
 
     bool isOutlet_(const GlobalPosition& globalPos) const
-     {
-        if(verticalFlow_)
-        {
-            return globalPos[1] > this->gridGeometry().bBoxMax()[1] - eps_;
-        }
-        else
-        {
-            return globalPos[0] > this->gridGeometry().bBoxMax()[0] - eps_;
-        }
+    {
+        const auto flowDir = flowDirection_();
+        return globalPos[flowDir] > this->gridGeometry().bBoxMax()[flowDir] - eps_;
     }
+
+    int flowDirection_() const
+    { return (verticalFlow_ ? 1 : 0);}
 
     bool verticalFlow_;
     static constexpr Scalar eps_=1e-6;
