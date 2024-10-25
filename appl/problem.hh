@@ -95,19 +95,19 @@ public:
             Scalar height = (*heights_)[eIdx];
             static const Scalar factor = getParam<Scalar>("Problem.PseudoWallFractionFactor", 12.0); //8.0 for vmax //12.0 for vmean
             const auto scvf = scvfs(fvGeometry, scv).begin();
-            
+
             // prefactor due to preFactorDrag
             Scalar preFactorDrag = 1;
             if(scv.dofAxis() == 0)
                 preFactorDrag = (*preFactorDrag_x_)[eIdx];
-            else 
+            else
                 preFactorDrag = (*preFactorDrag_y_)[eIdx];
-            
+
             source = this->pseudo3DWallFriction(element, fvGeometry, elemVolVars, scv, height, factor*preFactorDrag);
         }
         return source;
     }
-    
+
     /*!
      * \name Boundary conditions
      */
@@ -194,7 +194,7 @@ public:
 
         return h*h*h * w * deltaP_ / (12*mu*L) * (1.0 - 0.630 * h/w);
     }
-    
+
     //Returns auxiliary calculation for darcypermeability
     Scalar darcyPermFactor() const
     {
@@ -226,7 +226,7 @@ public:
         preFactorDrag_x_ = preFactorDrag_x;
         preFactorDrag_y_ = preFactorDrag_y;
     }
-    
+
     bool isVerticalFlow() const
     {
         return verticalFlow_;
@@ -238,7 +238,6 @@ private:
         if(verticalFlow_)
         {
             return globalPos[1] < eps_;
-            
         }
         else
         {
@@ -251,14 +250,13 @@ private:
         if(verticalFlow_)
         {
             return globalPos[1] > this->gridGeometry().bBoxMax()[1] - eps_;
-            
         }
         else
         {
             return globalPos[0] > this->gridGeometry().bBoxMax()[0] - eps_;
         }
     }
-    
+
     bool verticalFlow_;
     static constexpr Scalar eps_=1e-6;
     Scalar deltaP_;
