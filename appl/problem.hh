@@ -128,14 +128,24 @@ public:
                 correction *= scvf.directionSign();
 
                 // The actual factor which needs to be corrected due to porosity changes
+                auto heightScv = (*heights_)[scv.elementIndex()];
                 if(!scv.boundary())
                 {
-                    const auto eIdxI = scv.elementIndex();
-                    const auto eIdxJ = scv.boundary() ? eIdxI : eIdxMap_.value().neighboringElementIdx(scv);
-                    const auto h_avg = 0.5*((*heights_)[eIdxI] +(*heights_)[eIdxJ]);
-                    correction *= (1.0 - h_avg/maxHeight_);
+                    heightScv += (*heights_)[eIdxMap_.value().neighboringElementIdx(scv)];
+                    heightScv*= 0.5;
                 }
+                // If the boundary is in flow direction we now the pressure
+                else if(scv.dofAxis() == flowDirection_())
+                {
+                    auto pBoundary = isInlet_(scv.dofPosition()) ? pRef_ + deltaP_ : pRef_;
+                    pBoundary -= this->referencePressure(element, fvGeometry, scvf);
+                    correction += pBoundary*(-scvf.directionSign())*Extrusion::area(fvGeometry, scvf)*elemVolVars[scv].extrusionFactor();
+                }
+                // If the boundary is perpendicular to flow direction we assume zero pressure gradient
+                else
+                    correction = 0.0;
 
+                correction *= (1.0 - heightScv/maxHeight_);
                 // Scale by volume
                 correction /= Extrusion::volume(fvGeometry, scv)*elemVolVars[scv].extrusionFactor();
 
