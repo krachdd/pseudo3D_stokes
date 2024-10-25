@@ -128,10 +128,13 @@ public:
                 correction *= scvf.directionSign();
 
                 // The actual factor which needs to be corrected due to porosity changes
-                const auto eIdxI = scv.elementIndex();
-                const auto eIdxJ = scv.boundary() ? eIdxI : eIdxMap_.value().neighboringElementIdx(scv);
-                const auto h_avg = 0.5*((*heights_)[eIdxI] +(*heights_)[eIdxJ]);
-                correction *= (1.0 - h_avg/maxHeight_);
+                if(!scv.boundary())
+                {
+                    const auto eIdxI = scv.elementIndex();
+                    const auto eIdxJ = scv.boundary() ? eIdxI : eIdxMap_.value().neighboringElementIdx(scv);
+                    const auto h_avg = 0.5*((*heights_)[eIdxI] +(*heights_)[eIdxJ]);
+                    correction *= (1.0 - h_avg/maxHeight_);
+                }
 
                 // Scale by volume
                 correction /= Extrusion::volume(fvGeometry, scv)*elemVolVars[scv].extrusionFactor();
