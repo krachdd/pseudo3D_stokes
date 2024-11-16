@@ -1,5 +1,6 @@
 # A Pseudo-3D-Stokes Module for Varying Apertures
 [![Identifier](https://img.shields.io/badge/doi-10.18419%2Fdarus--4313-d45815.svg)](https://doi.org/10.18419/darus-4313)
+[![Identifier](https://img.shields.io/badge/Publication-blue)](http://ssrn.com/abstract=4927521)
 
 **Pseudo-3D-Stokes Module for Varying Apertures** is a [DuMu<sup>x</sup>](https://dumux.org/) module developed at research institutions. [DuMu<sup>x</sup>](https://dumux.org/) is a simulation framework focusing on Finite Volume discretization methods, model coupling for multi-physics applications, and flow and transport applications in porous media.
 
