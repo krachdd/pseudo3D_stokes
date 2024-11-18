@@ -84,8 +84,6 @@ If you are using the **Pseudo-3D-Stokes module for varying apertures** module in
 the academic context, please cite our publication:
 **A novel geometry-informed drag term formulation for pseudo-3D Stokes simulations with varying apertures.**
 
-*Advances in Water Resources*, TODOVolume, TODOPages, (2024).
-TODO Link To Paper
 ```bib
 @unpublished{Krach2024,
     doi = {TODO},
