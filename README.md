@@ -6,7 +6,7 @@
 
 This module aims to assist researchers in planning, improving, or interpreting microfluidic experiments through numerical simulations based on the Stokes equations in an easy and intuitive way. It uses `.pgm` files as input to create numerical grids. These `.pgm` files should include 8 bit grayscale values referring to the relative height of a microfluidic cell, which can be created from microscopy images of a microfluidic experiment using suitable image processing procedures.
 
-Based on the `.pgm` files, the `python` module `localdrag` ( [git](https://git.iws.uni-stuttgart.de/krachdd/localdrag), [DaRUS](https://doi.org/10.18419/darus-4313) ) should be used to create the suitable drag prefactor fields `lambda1` and `lambda2`. For further details, refer to our publication [**A Novel Geometry-Informed Drag Term Formulation for Depth-Averaged Stokes Simulations with Varying Apertures**](linkToDoinPaper).
+Based on the `.pgm` files, the `python` module `localdrag` ( [git](https://git.iws.uni-stuttgart.de/krachdd/localdrag), [DaRUS](https://doi.org/10.18419/darus-4313) ) should be used to create the suitable drag prefactor fields `lambda1` and `lambda2`. For further details, refer to our publication [**A Novel Geometry-Informed Drag Term Formulation for Pseudo-3D Stokes Simulations with Varying Apertures**](http://ssrn.com/abstract=4927521).
 
 ## How to Install
 
@@ -82,7 +82,7 @@ If you want to run simulations with your own geometries, follow these steps:
 
 If you are using the **Pseudo-3D-Stokes module for varying apertures** module in scientific publications and in
 the academic context, please cite our publication:
-**A novel geometry-informed drag term formulation for depth-averaged Stokes simulations with varying apertures.**
+**A novel geometry-informed drag term formulation for pseudo-3D Stokes simulations with varying apertures.**
 
 *Advances in Water Resources*, TODOVolume, TODOPages, (2024).
 TODO Link To Paper
@@ -92,7 +92,7 @@ TODO Link To Paper
     year = {2024}, volume = {TODO}, pages = {TODO},
     publisher = {Elsevier},
     author = {David Krach and Felix Weinhardt and Mingfeng Wang and Martin Schneider and Holger Class and Holger Steeb},
-    title = {A novel geometry-informed drag term formulation for depth-averaged Stokes simulations with varying apertures},
+    title = {A novel geometry-informed drag term formulation for pseudo-3D Stokes simulations with varying apertures},
     journal = {Advances in Water Resources}}
 ```
 
