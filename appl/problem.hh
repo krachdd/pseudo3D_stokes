@@ -22,10 +22,12 @@
 #include <dumux/common/properties.hh>
 #include <dumux/common/parameters.hh>
 
+#include <dumux/discretization/extrusion.hh>
 #include <dumux/freeflow/navierstokes/momentum/fluxhelper.hh>
 #include <dumux/freeflow/navierstokes/scalarfluxhelper.hh>
 #include <dumux/freeflow/navierstokes/mass/1p/advectiveflux.hh>
 
+#include "doftoelementmapper.hh"
 namespace Dumux {
 
 template <class TypeTag, class BaseProblem>
@@ -46,6 +48,7 @@ class Pseudo3DStokesVariableHeightProblem : public BaseProblem
     using BoundaryFluxes = typename ParentType::BoundaryFluxes;
     using Scalar = GetPropType<TypeTag, Properties::Scalar>;
     using SolutionVector = GetPropType<TypeTag, Properties::SolutionVector>;
+    using Extrusion = Extrusion_t<GridGeometry>;
 
     static constexpr auto dimWorld = GridGeometry::GridView::dimensionworld;
     using Element = typename GridGeometry::GridView::template Codim<0>::Entity;
@@ -70,6 +73,14 @@ public:
         height_ = getParam<Scalar>("Problem.Height");
         if(dim == 3 && !Dune::FloatCmp::eq(height_, this->gridGeometry().bBoxMax()[2]))
             DUNE_THROW(Dune::InvalidStateException, "z-dimension must equal height");
+
+        addPressureCorrection_ = getParam<bool>("Problem.AddPressureCorrection", true);
+
+        if constexpr (ParentType::isMomentumProblem())
+        {
+            eIdxMap_ = DofToEIdxMapper<GridGeometry>();
+            eIdxMap_.value().update(this->gridGeometry());
+        }
     }
 
     /*!
@@ -94,20 +105,57 @@ public:
             const auto eIdx = this->gridGeometry().elementMapper().index(element);
             Scalar height = (*heights_)[eIdx];
             static const Scalar factor = getParam<Scalar>("Problem.PseudoWallFractionFactor", 12.0); //8.0 for vmax //12.0 for vmean
-            const auto scvf = scvfs(fvGeometry, scv).begin();
-            
+
             // prefactor due to preFactorDrag
             Scalar preFactorDrag = 1;
             if(scv.dofAxis() == 0)
                 preFactorDrag = (*preFactorDrag_x_)[eIdx];
-            else 
+            else
                 preFactorDrag = (*preFactorDrag_y_)[eIdx];
-            
+
             source = this->pseudo3DWallFriction(element, fvGeometry, elemVolVars, scv, height, factor*preFactorDrag);
+
+            if(addPressureCorrection_)
+            {
+                const auto& scvf = (*scvfs(fvGeometry, scv).begin());
+                Scalar correction(0.0);
+
+                // For the frontal face we need to add the pressure correction
+                const auto pressure = this->pressure(element, fvGeometry, scvf) - this->referencePressure(element, fvGeometry, scvf);
+                correction = pressure*Extrusion::area(fvGeometry, scvf)*elemVolVars[scv].extrusionFactor();
+
+                // Account for the orientation of the face.
+                correction *= scvf.directionSign();
+
+                // The actual factor which needs to be corrected due to porosity changes
+                auto heightScv = (*heights_)[scv.elementIndex()];
+                if(!scv.boundary())
+                {
+                    heightScv += (*heights_)[eIdxMap_.value().neighboringElementIdx(scv)];
+                    heightScv*= 0.5;
+                }
+                // If the boundary is in flow direction we now the pressure
+                else if(scv.dofAxis() == flowDirection_())
+                {
+                    auto pBoundary = isInlet_(scv.dofPosition()) ? pRef_ + deltaP_ : pRef_;
+                    pBoundary -= this->referencePressure(element, fvGeometry, scvf);
+                    correction += pBoundary*(-scvf.directionSign())*Extrusion::area(fvGeometry, scvf)*elemVolVars[scv].extrusionFactor();
+                }
+                // If the boundary is perpendicular to flow direction we assume zero pressure gradient
+                else
+                    correction = 0.0;
+
+                correction *= (1.0 - heightScv/maxHeight_);
+                // Scale by volume
+                correction /= Extrusion::volume(fvGeometry, scv)*elemVolVars[scv].extrusionFactor();
+
+                source += correction;
+            }
+
         }
         return source;
     }
-    
+
     /*!
      * \name Boundary conditions
      */
@@ -194,7 +242,7 @@ public:
 
         return h*h*h * w * deltaP_ / (12*mu*L) * (1.0 - 0.630 * h/w);
     }
-    
+
     //Returns auxiliary calculation for darcypermeability
     Scalar darcyPermFactor() const
     {
@@ -226,7 +274,7 @@ public:
         preFactorDrag_x_ = preFactorDrag_x;
         preFactorDrag_y_ = preFactorDrag_y;
     }
-    
+
     bool isVerticalFlow() const
     {
         return verticalFlow_;
@@ -235,30 +283,19 @@ public:
 private:
     bool isInlet_(const GlobalPosition& globalPos) const
     {
-        if(verticalFlow_)
-        {
-            return globalPos[1] < eps_;
-            
-        }
-        else
-        {
-            return globalPos[0] < eps_;
-        }
+        const auto flowDir = flowDirection_();
+        return globalPos[flowDir] < eps_;
     }
 
     bool isOutlet_(const GlobalPosition& globalPos) const
-     {
-        if(verticalFlow_)
-        {
-            return globalPos[1] > this->gridGeometry().bBoxMax()[1] - eps_;
-            
-        }
-        else
-        {
-            return globalPos[0] > this->gridGeometry().bBoxMax()[0] - eps_;
-        }
+    {
+        const auto flowDir = flowDirection_();
+        return globalPos[flowDir] > this->gridGeometry().bBoxMax()[flowDir] - eps_;
     }
-    
+
+    int flowDirection_() const
+    { return (verticalFlow_ ? 1 : 0);}
+
     bool verticalFlow_;
     static constexpr Scalar eps_=1e-6;
     Scalar deltaP_;
@@ -274,6 +311,8 @@ private:
     std::shared_ptr<const std::vector<Scalar>> preFactorDrag_y_;
     Scalar maxHeight_;
     Scalar frictionFactor_;
+    bool addPressureCorrection_;
+    std::optional<DofToEIdxMapper<GridGeometry>> eIdxMap_;
 };
 
 } // end namespace Dumux
