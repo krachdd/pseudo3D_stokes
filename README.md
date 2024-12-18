@@ -85,13 +85,15 @@ the academic context, please cite our publication:
 **A novel geometry-informed drag term formulation for pseudo-3D Stokes simulations with varying apertures.**
 
 ```bib
-@unpublished{Krach2024,
-    doi = {TODO},
-    year = {2024}, volume = {TODO}, pages = {TODO},
-    publisher = {Elsevier},
-    author = {David Krach and Felix Weinhardt and Mingfeng Wang and Martin Schneider and Holger Class and Holger Steeb},
-    title = {A novel geometry-informed drag term formulation for pseudo-3D Stokes simulations with varying apertures},
-    journal = {Advances in Water Resources}}
+@article{Krach2025,
+title = {A novel geometry-informed drag term formulation for pseudo-3D Stokes simulations with varying apertures},
+journal = {Advances in Water Resources},
+volume = {195},
+year = {2025},
+doi = {https://doi.org/10.1016/j.advwatres.2024.104860},
+author = {David Krach and Felix Weinhardt and Mingfeng Wang and Martin Schneider and Holger Class and Holger Steeb},
+keywords = {Porous media, Stokes flow, Biomineralization, Microfluidics, Image-based simulations, Computational efficiency versus accuracy}
+}
 ```
 
 ## Acknowledgements
