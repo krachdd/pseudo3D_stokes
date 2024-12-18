@@ -6,7 +6,7 @@
 
 This module aims to assist researchers in planning, improving, or interpreting microfluidic experiments through numerical simulations based on the Stokes equations in an easy and intuitive way. It uses `.pgm` files as input to create numerical grids. These `.pgm` files should include 8 bit grayscale values referring to the relative height of a microfluidic cell, which can be created from microscopy images of a microfluidic experiment using suitable image processing procedures.
 
-Based on the `.pgm` files, the `python` module `localdrag` ( [git](https://git.iws.uni-stuttgart.de/krachdd/localdrag), [DaRUS](https://doi.org/10.18419/darus-4313) ) should be used to create the suitable drag prefactor fields `lambda1` and `lambda2`. For further details, refer to our publication [**A Novel Geometry-Informed Drag Term Formulation for Pseudo-3D Stokes Simulations with Varying Apertures**](http://ssrn.com/abstract=4927521).
+Based on the `.pgm` files, the `python` module `localdrag` ( [git](https://git.iws.uni-stuttgart.de/krachdd/localdrag), [DaRUS](https://doi.org/10.18419/darus-4313) ) should be used to create the suitable drag prefactor fields `lambda1` and `lambda2`. For further details, refer to our publication [**A Novel Geometry-Informed Drag Term Formulation for Pseudo-3D Stokes Simulations with Varying Apertures**](https://doi.org/10.1016/j.advwatres.2024.104860).
 
 ## How to Install
 
