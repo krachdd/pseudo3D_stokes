@@ -1,0 +1,15 @@
+*.pvd 
+*.vtu
+*.csv*
+*.output
+*.input
+!singlePrecipitate_no.input
+!singlePrecipitate_quarter.input
+!singlePrecipitate_half.input
+!singlePrecipitate_threeQuarter.input
+!singlePrecipitate_full.input
+!singlePrecipitate_fiveQuarter.input
+!singlePrecipitate_threeHalf.input
+!pipesPeriodicBrinkman.input
+!ellipsePeriodicBrinkman.input
+pseudo3D_stokes

@@ -69,7 +69,7 @@ struct Grid<TypeTag, TTag::Pseudo3DStokesVariableHeight>
 {
     static constexpr int dim = GRID_DIM;
 
-    using HostGrid = Dune::YaspGrid<dim, Dune::EquidistantOffsetCoordinates<GetPropType<TypeTag, Properties::Scalar>, dim> >;
+    using HostGrid = Dune::SPGrid<double, 2>;
 
 #if HAVE_DUNE_SUBGRID
     using type = Dune::SubGrid<HostGrid::dimension, HostGrid>;

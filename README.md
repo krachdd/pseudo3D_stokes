@@ -1,6 +1,6 @@
 # A Pseudo-3D-Stokes Module for Varying Apertures
 [![Identifier](https://img.shields.io/badge/doi-10.18419%2Fdarus--4313-d45815.svg)](https://doi.org/10.18419/darus-4313)
-[![Identifier](https://img.shields.io/badge/Publication-blue)]([http://ssrn.com/abstract=4927521](https://doi.org/10.1016/j.advwatres.2024.104860))
+[![Identifier](https://img.shields.io/badge/Publication-blue)](https://doi.org/10.1016/j.advwatres.2024.104860)
 
 **Pseudo-3D-Stokes Module for Varying Apertures** is a [DuMu<sup>x</sup>](https://dumux.org/) module developed at research institutions. [DuMu<sup>x</sup>](https://dumux.org/) is a simulation framework focusing on Finite Volume discretization methods, model coupling for multi-physics applications, and flow and transport applications in porous media.
 
@@ -81,11 +81,11 @@ If you want to run simulations with your own geometries, follow these steps:
 ## How to cite
 
 If you are using the **Pseudo-3D-Stokes module for varying apertures** module in scientific publications and in
-the academic context, please cite our publication:
-**A novel geometry-informed drag term formulation for pseudo-3D Stokes simulations with varying apertures.**
+the academic context, please cite our publications:
 
+**A novel geometry-informed drag term formulation for pseudo-3D Stokes simulations with varying apertures:**
 ```bib
-@article{Krach2025,
+@article{Krach2025a,
     title = {A novel geometry-informed drag term formulation for pseudo-3D Stokes simulations with varying apertures},
     journal = {Advances in Water Resources},
     volume = {195},
@@ -96,12 +96,27 @@ the academic context, please cite our publication:
 }
 ```
 
+
+**Code repository, Version v1.0:**
+```bib
+@data{Krach2025b,
+    author = {Krach, David and Weinhardt, Felix and Wang, Mingfeng and Schneider, Martin and Class, Holger and Steeb, Holger},
+    publisher = {DaRUS},
+    title = {{Code and benchmarks for geometry-informed drag term computation for pseudo-3D Stokes simulations with varying apertures}},
+    year = {2024},
+    version = {V2},
+    doi = {10.18419/DARUS-4313},
+    url = {https://doi.org/10.18419/DARUS-4313}
+}
+```
+
 ## Acknowledgements
 Funded by Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) under Germany's Excellence Strategy (Project number 390740016 - EXC 2075 and the Collaborative Research Center 1313 (project number 327154368 - SFB1313). We acknowledge the support by the Stuttgart Center for Simulation Science (SimTech).
 
 ## Developer
 - [Felix Weinhardt](https://www.mib.uni-stuttgart.de/de/institut/team/Weinhardt-00003/) E-mail: [felix.weinhardt@mib.uni-stuttgart.de](mailto:felix.weinhardt@mib.uni-stuttgart.de)
 - [David Krach](https://www.mib.uni-stuttgart.de/institute/team/Krach/) E-mail: [david.krach@mib.uni-stuttgart.de](mailto:david.krach@mib.uni-stuttgart.de)
+- [Martin Schneider](https://www.iws.uni-stuttgart.de/institut/team/Schneider-00018/) E-mail: [martin.schneider@iws.uni-stuttgart.de](mailto:martin.schneider@iws.uni-stuttgart.de) 
 
 ## Contact
 - [Software Support Institute of Applied Mechanics](mailto:software@mib.uni-stuttgart.de)

@@ -41,6 +41,7 @@ import matplotlib.image as img
 from natsort import natsorted
 from functools import partial
 import multiprocessing
+import concurrent.futures
 
 import localdrag as ld
 from localdrag import *
@@ -51,16 +52,19 @@ verbose = False
 
 argParser = argparse.ArgumentParser()
 argParser.add_argument( "-dir",         "--workingDirectory",                                                     help="Working directory with .pgm files."                              )
+argParser.add_argument( "-input",       "--genericInputFile",  type=str,   default="genericInput.input",          help="Generic .input file."                                   )
 argParser.add_argument( "-vs",          "--voxelsize",         type=float,                                        help="Defines the voxel size of the image in [m]."                     )
 argParser.add_argument( "-height",      "--heightOfDomain",    type=float,                                        help="Defines the voxel height of the domain in [m]."                  )
 argParser.add_argument( "-dumux",       "--dumux_path",        type=str,                                          help="Path to my dumux build directory, with executable."              )
 argParser.add_argument( "-exec",        "--dumux_exec",        type=str,                                          help="Name of dumux executable."                                       )
+argParser.add_argument( "-govEq",       "--govEquation",       type=str,   default="brinkman",                    help="Defines the type of governing equation (brinkman or stokes)."    )
 argParser.add_argument( "-deltaP",      "--deltaPressure",     type=float, default=1.4e-3,                        help="Defines the pressure difference from inlet to outlet in [Pa]."   )
 argParser.add_argument( "-get_phi",     "--get_porosity",                  default=False,  action="store_true",   help="True if porosities should be computed and saved."                )
 argParser.add_argument( "-no_run",      "--no_run",                        default=False,  action="store_true",   help="True if files should be copied and simulation be run."           )
 argParser.add_argument( "-no_postproc", "--no_postprocessing",             default=False,  action="store_true",   help="True permeability and porosity Data should be harvested -> csv." )
 argParser.add_argument( "-no_lambda",   "--no_lambda_given",               default=False,  action="store_true",   help="Prefactor files are given."                                      )
 argParser.add_argument( "-vtu",         "--vtuOutput",                     default=False,  action="store_true",   help="Results should be written in vtu files, default is True."        )
+argParser.add_argument( "-pc",          "--presscorrect",                  default=False,  action='store_true',   help="Employ pressure corretion term. Default is False")
 args = argParser.parse_args()
 
 lambda_given       = not args.no_lambda_given
@@ -70,7 +74,8 @@ height             = float(args.heightOfDomain)
 dumuxpath          = str(args.dumux_path)
 executable         = str(args.dumux_exec)
 pressure           = float(args.deltaPressure)
-generic_input_file = f'genericInput.input'
+gov_equation       = str(args.govEquation)
+generic_input_file = str(args.genericInputFile)
 
 # This has to be adapted based on folder structure 
 # output_file_name   = f'perm_{datadir.split("/")[1]}_{datadir.split("/")[2]}.csv'
@@ -81,6 +86,7 @@ copy_run           = not args.no_run
 postprocessing     = not args.no_postprocessing
 parallel           = False
 vtuOutput          = args.vtuOutput
+presscorrect       = args.presscorrect
 
 metadata = {}
 metadata['lambda_given']       = lambda_given
@@ -88,6 +94,7 @@ metadata['datadir']            = datadir
 metadata['voxelsize']          = voxelsize
 metadata['height']             = height
 metadata['pressure']           = pressure
+metadata['gov_equation']       = gov_equation
 metadata['dumuxpath']          = dumuxpath
 metadata['executable']         = executable
 metadata['generic_input_file'] = generic_input_file
@@ -98,6 +105,9 @@ metadata['postprocessing']     = postprocessing
 metadata['verbose']            = verbose
 metadata['parallel']           = parallel
 metadata['vtuOutput']          = vtuOutput
+metadata['presscorrect']       = presscorrect
+
+# TODO Add a solid sanity check!
 
 ld.run_dumux.get_executeable(metadata)
 
@@ -108,13 +118,29 @@ filelist = natsorted(filelist)
 if get_porosity:
     ld.postprocessing_sweep.all_porosities(filelist, datadir)
 
+#if copy_run:
+#    print(f'Starting sequential computation.')
+#    for i in range(len(filelist)):
+#        # Run actual dumux simulation
+#        ld.run_dumux.run(metadata, filelist[i])
+#        
+#        print(f'Progress: {((i+1)/len(filelist) * 100):2.2f} % done, domain {i+1} / {len(filelist)}\n')
+
+
 if copy_run:
-    print(f'Starting sequential computation.')
-    for i in range(len(filelist)):
-        # Run actual dumux simulation
-        ld.run_dumux.run(metadata, filelist[i])
-        
-        print(f'Progress: {((i+1)/len(filelist) * 100):2.2f} % done, domain {i+1} / {len(filelist)}\n')
+    print(f'Starting parallel computation.')
+
+    def run_simulation(file):
+        ld.run_dumux.run(metadata, file)
+
+    # Use ProcessPoolExecutor for parallel execution
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        futures = {executor.submit(run_simulation, file): i for i, file in enumerate(filelist)}
+
+        for future in concurrent.futures.as_completed(futures):
+            i = futures[future]
+            print(f'Progress: {((i+1)/len(filelist) * 100):2.2f} % done, domain {i+1} / {len(filelist)}\n')
+
 
 if postprocessing:
     ld.postprocessing_sweep.crawl_output_benchmark(filelist, metadata)

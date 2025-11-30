@@ -31,8 +31,10 @@
 #include <dumux/common/properties.hh>
 
 #include <dumux/io/vtkoutputmodule.hh>
+#include <dumux/io/grid/gridmanager_sp.hh>
 #include <dumux/io/grid/gridmanager_sub.hh>
 #include <dumux/io/grid/gridmanager_yasp.hh>
+#include <dune/grid/spgrid.hh>
 
 #include <dumux/linear/istlsolvers.hh>
 #include <dumux/linear/linearsolvertraits.hh>
@@ -51,10 +53,12 @@
 void prepareGridWithPrefactor(
                 const Dumux::Detail::RasterImageData::Result<std::size_t>& grayScaleImage,
                 double maxHeight,
-                 std::vector<unsigned char>& dataGrid, 
-                 std::vector<double>& dataHeight,
-                 std::vector<double>& preFactorDrag_x,
-                 std::vector<double>& preFactorDrag_y)
+                std::vector<unsigned char>& dataGrid,
+                std::vector<double>& dataHeight,
+                std::vector<double>& preFactorDrag_x,
+                std::vector<double>& preFactorDrag_y,
+                std::vector<double>& preFactorDragPressure_x,
+                std::vector<double>& preFactorDragPressure_y)
 {
     auto maxValue = max_element(std::begin(grayScaleImage), std::end(grayScaleImage));
     std::cout << "maximum value of GeometryFile is : " << *maxValue << std::endl;
@@ -69,6 +73,8 @@ void prepareGridWithPrefactor(
         {
             preFactorDrag_x.erase(preFactorDrag_x.begin() + i-j);
             preFactorDrag_y.erase(preFactorDrag_y.begin() + i-j);
+            preFactorDragPressure_x.erase(preFactorDragPressure_x.begin() + i-j);
+            preFactorDragPressure_y.erase(preFactorDragPressure_y.begin() + i-j);
             dataGrid.push_back(0);
             j++;
         }
@@ -110,12 +116,12 @@ int main(int argc, char** argv)
     // parse command line arguments and input file
     Parameters::init(argc, argv);
 
-    // create a grid    
+    // create a grid
     using Grid = GetPropType<MassTypeTag, Properties::Grid>;
     Dumux::GridManager<Grid> gridManager;
-    
+
     constexpr int dim = 2;
-    using HostGrid = Dune::YaspGrid<dim, Dune::EquidistantOffsetCoordinates<double, dim> >;
+    using HostGrid = Dune::SPGrid<double, dim>;
     using SubGrid = Dune::SubGrid<dim, HostGrid>;
     using HostGridManager = Dumux::GridManager<HostGrid>;
 
@@ -123,23 +129,25 @@ int main(int argc, char** argv)
     externalHostGridManager.init();
     auto& hostGrid = externalHostGridManager.grid();
     const auto& gridView = externalHostGridManager.grid().leafGridView();
-    
+
     std::string geomFile = getParam<std::string>("Grid.GeometryFile");
     std::string preFactorDrag_xFile = getParam<std::string>("Grid.PreFactorDragFileX", "noFile");
     std::string preFactorDrag_yFile = getParam<std::string>("Grid.PreFactorDragFileY", "noFile");
+    std::string preFactorDragPressure_xFile = getParam<std::string>("Grid.PreFactorDragPressureFileX", "noFile");
+    std::string preFactorDragPressure_yFile = getParam<std::string>("Grid.PreFactorDragPressureFileY", "noFile");
 
     const auto upperRight = getParam<std::vector<double>>("Grid.UpperRight");
     const auto cells = getParam<std::vector<double>>("Grid.Cells");
     const auto maxHeight = getParam<double>("Problem.Height");
     const auto writeVtu = getParam<bool>("Vtk.WriteVtuData");
-    
+
     std::vector<double> pixelRes;
     pixelRes.push_back(upperRight[0]/cells[0]);
     pixelRes.push_back(upperRight[1]/cells[1]);
-    
+
     std::cout << "Pixel Resolution is " << pixelRes[0] << ", " << pixelRes[1] << std::endl;
     std::cout << "maxHeight is " << maxHeight << std::endl;
-    
+
     const auto grayScaleImage = NetPBMReader::readPGM<std::size_t>(geomFile);
     auto maxValueTest = *max_element(std::begin(grayScaleImage), std::end(grayScaleImage));
     std::cout << "Max value of gray scale image in main file is: " << maxValueTest << std::endl;
@@ -149,7 +157,9 @@ int main(int argc, char** argv)
     std::vector<double> dataHeight;
     std::vector<double> preFactorDrag_x (grayScaleImage.size(), 1);
     std::vector<double> preFactorDrag_y (grayScaleImage.size(), 1);
-    
+    std::vector<double> preFactorDragPressure_x (grayScaleImage.size(), 0);
+    std::vector<double> preFactorDragPressure_y (grayScaleImage.size(), 0);
+
     std::cout << "before gird is prepared"<< std::endl;
     // Checks if there is a prefactor File given for x and y. If that is the case the values are read
     if(preFactorDrag_xFile.compare("noFile") != 0)
@@ -167,9 +177,28 @@ int main(int argc, char** argv)
     else
         std::cout << " NO prefactor File is given for preFactorDrag_xFile" << std::endl;
 
-    prepareGridWithPrefactor(grayScaleImage, maxHeight, dataGrid, dataHeight, preFactorDrag_x, preFactorDrag_y);
-    std::cout << "gird is prepared"<< std::endl;
+    // Same for pressure grid
+    if(preFactorDragPressure_xFile.compare("noFile") != 0)
+    {
+        std::cout << "prefactor File is given for preFactorDragPressure_xFile" << std::endl;
+        preFactorDragPressure_x = readFileToContainer<std::vector<double>>(preFactorDragPressure_xFile);
+    }
+    else
+        std::cout << " NO prefactor File is given for preFactorDragPressure_xFile" << std::endl;
+    if(preFactorDragPressure_yFile.compare("noFile") != 0)
+    {
+        std::cout << "prefactor File is given for preFactorDragPressure_yFile" << std::endl;
+        preFactorDragPressure_y = readFileToContainer<std::vector<double>>(preFactorDragPressure_yFile);
+    }
+    else
+        std::cout << " NO prefactor File is given for preFactorDragPressure_xFile" << std::endl;
 
+
+    prepareGridWithPrefactor(grayScaleImage, maxHeight, dataGrid, dataHeight, 
+                             preFactorDrag_x, preFactorDrag_y,
+                             preFactorDragPressure_x, preFactorDragPressure_y);
+
+    std::cout << "Gird is prepared"<< std::endl;
 
     using Scalar = GetPropType<MomentumTypeTag, Properties::Scalar>;
 
@@ -190,10 +219,11 @@ int main(int argc, char** argv)
     // we compute on the leaf grid view
     const auto& leafGridView = subgridManager.grid().leafGridView();
 
-
     const auto relHeights = getSubgridFields(gridView, leafGridView, dataHeight);
     const auto preFactorDrag_x_subGrid = getSubgridFields(gridView, leafGridView, preFactorDrag_x);
     const auto preFactorDrag_y_subGrid = getSubgridFields(gridView, leafGridView, preFactorDrag_y);
+    const auto preFactorDragPressure_x_subGrid = getSubgridFields(gridView, leafGridView, preFactorDragPressure_x);
+    const auto preFactorDragPressure_y_subGrid = getSubgridFields(gridView, leafGridView, preFactorDragPressure_y);
 
     // create the finite volume grid geometry
     using MomentumGridGeometry = GetPropType<MomentumTypeTag, Properties::GridGeometry>;
@@ -212,12 +242,15 @@ int main(int argc, char** argv)
     momentumProblem->spatialParams().setrelHeights(relHeights);
 
     momentumProblem->setpreFactorsDrag(preFactorDrag_x_subGrid, preFactorDrag_y_subGrid);
+    momentumProblem->setpreFactorsDragPressure(preFactorDragPressure_x_subGrid, preFactorDragPressure_y_subGrid);
 
     using MassProblem = GetPropType<MassTypeTag, Properties::Problem>;
     auto massProblem = std::make_shared<MassProblem>(massGridGeometry, couplingManager);
     massProblem->setrelHeights(relHeights);
     massProblem->spatialParams().setrelHeights(relHeights);
+    
     massProblem->setpreFactorsDrag(preFactorDrag_x_subGrid, preFactorDrag_y_subGrid);
+    massProblem->setpreFactorsDragPressure(preFactorDragPressure_x_subGrid, preFactorDragPressure_y_subGrid);
 
     // the solution vector
     constexpr auto momentumIdx = CouplingManager::freeFlowMomentumIndex;
@@ -250,9 +283,23 @@ int main(int argc, char** argv)
     VtkOutputModule vtkWriter(*massGridVariables, x[massIdx], massProblem->name());
     IOFields::initOutputModule(vtkWriter); // Add model specific output fields
     vtkWriter.addVelocityOutput(std::make_shared<NavierStokesVelocityOutput<MassGridVariables>>());
+
     vtkWriter.addField(dataHeight, "relheight");
-    vtkWriter.addField(preFactorDrag_x, "preFactorDrag_x");
-    vtkWriter.addField(preFactorDrag_y, "preFactorDrag_y");
+    
+    if(preFactorDrag_xFile.compare("noFile") != 0 && preFactorDrag_yFile.compare("noFile") != 0)
+    {
+        vtkWriter.addField(preFactorDrag_x, "preFactorDrag_x");
+        vtkWriter.addField(preFactorDrag_y, "preFactorDrag_y");
+    }
+    
+    if(preFactorDragPressure_xFile.compare("noFile") != 0 && preFactorDragPressure_yFile.compare("noFile") != 0)
+    {
+        vtkWriter.addField(preFactorDragPressure_x, "preFactorDragPressure_x");
+        vtkWriter.addField(preFactorDragPressure_y, "preFactorDragPressure_y");
+    }
+
+    
+
     if(writeVtu)
         vtkWriter.write(0.0);
 
@@ -384,9 +431,9 @@ int main(int argc, char** argv)
     const auto aniso_perp_outletLowerLeft    = GlobalPosition{ xMin,   yMax_2 };
     const auto aniso_perp_outletUpperRight   = GlobalPosition{ xMax_2, yMax_2 };
 
-#endif 
+#endif
 
-if ( massProblem->isVerticalFlow())
+    if ( massProblem->isVerticalFlow())
     {
     // If the Flux is vertical perpendicular direction is main direction and vice versa
     flux.addAxisAlignedSurface( "aniso_main_inlet",  aniso_perp_inletLowerLeft,  aniso_perp_inletUpperRight  );
@@ -396,7 +443,7 @@ if ( massProblem->isVerticalFlow())
     flux.addAxisAlignedSurface( "aniso_perp_middle", aniso_main_middleLowerLeft, aniso_main_middleUpperRight );
     flux.addAxisAlignedSurface( "aniso_perp_outlet", aniso_main_outletLowerLeft, aniso_main_outletUpperRight );
     }
-else 
+    else
     {
     flux.addAxisAlignedSurface( "aniso_main_inlet",  aniso_main_inletLowerLeft,  aniso_main_inletUpperRight  );
     flux.addAxisAlignedSurface( "aniso_main_middle", aniso_main_middleLowerLeft, aniso_main_middleUpperRight );
@@ -419,7 +466,7 @@ else
 
     // calculate and print mass fluxes over the planes
     const auto rho_ = getParam<Scalar>("Component.LiquidDensity");
-    
+
     flux.calculateAllFluxes();
     std::cout << "mass flux at inlet is: " << flux.flux("inlet") << std::endl;
     std::cout << "mass flux at middle is: " << flux.flux("middle") << std::endl;
@@ -439,12 +486,12 @@ else
     std::cout << "\tVolume flux perp direction outlet:  " << flux.flux( "aniso_perp_outlet" ) / rho_ << std::endl;
 
     std::cout << "analyticalFlux: " << massProblem->analyticalFlux()*1e3 << std::endl;
-    
+
     std::cout << "k11 is darcypermeability in main direction of the driving force!" << std::endl;
-    std::cout << "darcypermeability:     " << massProblem->darcyPermFactor() * ( flux.flux( "outlet" ) / rho_ )            << std::endl; 
-    std::cout << "k11_darcypermeability: " << massProblem->darcyPermFactorHalfDomain() * ( flux.flux( "aniso_main_outlet" ) / rho_ ) << std::endl; 
-    std::cout << "k12_darcypermeability: " << massProblem->darcyPermFactorHalfDomain() * ( flux.flux( "aniso_perp_outlet" ) / rho_ ) << std::endl; 
-    
+    std::cout << "darcypermeability:     " << massProblem->darcyPermFactor() * ( flux.flux( "outlet" ) / rho_ )            << std::endl;
+    std::cout << "k11_darcypermeability: " << massProblem->darcyPermFactorHalfDomain() * ( flux.flux( "aniso_main_outlet" ) / rho_ ) << std::endl;
+    std::cout << "k12_darcypermeability: " << massProblem->darcyPermFactorHalfDomain() * ( flux.flux( "aniso_perp_outlet" ) / rho_ ) << std::endl;
+
     timer.stop();
 
     const auto& comm = Dune::MPIHelper::getCommunication();

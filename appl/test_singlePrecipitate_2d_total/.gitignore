@@ -1,7 +1,8 @@
 *.pvd 
 *.vtu
-*.csv
+*.csv*
 *.output
+*.input
 !singlePrecipitate_no.input
 !singlePrecipitate_quarter.input
 !singlePrecipitate_half.input

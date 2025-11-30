@@ -1,10 +1,13 @@
 [Grid]
 UpperRight = <domainSizeX> <domainSizeY>
 Cells = <cellsX> <cellsY>
+Periodic = 0 0 # x y (z) 1 -> periodic; 0 -> not periodic
 
 GeometryFile = <geomFile>
 PreFactorDragFileX = <PreFactorDragFileX>
 PreFactorDragFileY = <PreFactorDragFileY>
+PreFactorDragPressureFileX = <PreFactorDragPressureFileX>
+PreFactorDragPressureFileY = <PreFactorDragPressureFileY>
 
 [Problem]
 Name = <name>
@@ -13,6 +16,8 @@ pRef = 0          # [Pa] Reference pressure at the outlet
 EnableGravity = false
 Height = <height> # [m]              # 
 PseudoWallFractionFactor = 12        # 8 for v_max, 12 for v_average
+AddPressureCorrection = <govEquation>         # true -> brinkman, false -> stokes
+AddPressureLambda = <addPressureLambda>       
 
 [SpatialParams]
 PreExtrusionFactor = 1    # 0.666666667 for v_max, 1 for v_average
